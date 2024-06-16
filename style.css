@@ -1,0 +1,60 @@
+/* styles.css */
+
+body {
+    background-color: #323232;
+    font-family: 'Open Sans', sans-serif;
+    color: rgb(255, 255, 255);
+    height: 100vh;
+    margin: 0;
+}
+
+h1 {
+    text-align: center;
+}
+
+#content {
+    margin-top: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+table {
+    width: 300px;
+    height: 300px;
+    border-collapse: collapse;
+    border: 5px solid transparent; /* Entfernt äußere Ränder */
+}
+
+td {
+    width: 100px;
+    height: 100px;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 2em;
+    border: 5px solid white;
+}
+
+tr:first-child td {
+    border-top: none;
+}
+
+tr:last-child td {
+    border-bottom: none;
+}
+
+td:first-child {
+    border-left: none;
+}
+
+td:last-child {
+    border-right: none;
+}
+
+.circle {
+    color: blue;
+}
+
+.cross {
+    color: red;
+}
