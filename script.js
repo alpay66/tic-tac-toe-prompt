@@ -10,20 +10,9 @@ let fields = [
     null,
 ];
 
-function checkWinner() {
-    const winningCombinations = [
-        [0, 1, 2],
-        [3, 4, 5],
-        [6, 7, 8],
-        [0, 3, 6],
-        [1, 4, 7],
-        [2, 5, 8],
-        [0, 4, 8],
-        [2, 4, 6]
-    ];
-}
-
 let currentPlayer = 'circle';
+
+let winningLine = null;
 
 function init() {
     render();
@@ -45,13 +34,54 @@ function render() {
                 symbol = generateCrossSVG();
             }
 
-            tableHTML += `<td onclick="handleClick(${index}, this)">${symbol}</td>`;
+            tableHTML += `<td id="cell-${index}" onclick="handleClick(${index}, this)">${symbol}</td>`;
         }
         tableHTML += '</tr>';
     }
 
     tableHTML += '</table>';
     content.innerHTML = tableHTML;
+
+    if (winningLine) {
+        winningLine.remove();
+        winningLine = null;
+    }
+}
+
+function restartGame() {
+    // Setze alle Felder auf null zurück
+fields = [
+    null, null, null,
+    null, null, null,
+    null, null, null,
+];
+
+// Setze den aktuellen Spieler zurück
+currentPlayer = 'circle';
+
+// Rufe die render Funktion auf, um das Spielbrett neu zu rendern
+render();
+}
+
+function checkWinner() {
+    const winningCombinations = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6]
+    ];
+
+    for (const combination of winningCombinations) {
+        const [a, b, c] = combination;
+        if (fields[a] && fields[a] === fields[b] && fields[a] === fields[c]) {
+            return combination;
+        }
+    }
+    return null;
 }
 
 function handleClick(index, cell) {
@@ -59,56 +89,42 @@ function handleClick(index, cell) {
         fields[index] = currentPlayer;
         cell.innerHTML = currentPlayer === 'circle' ? generateCircleSVG() : generateCrossSVG();
         cell.onclick = null;
-        currentPlayer = currentPlayer === 'circle' ? 'cross' : 'circle';
+        if (checkWinner()) {
+            drawWinningLine();
+            // Verzögerung für die SVG-Animation (500ms)
+            setTimeout(() => {
+                if (checkWinner()) {
+                    alert(currentPlayer + ' wins!');
+                }
+            }, 500);
+        } else if (fields.every(field => field !== null)) {
+            setTimeout(() => alert('Draw!'), 500 );
+        } else {
+            currentPlayer = currentPlayer === 'circle' ? 'cross' : 'circle';
+        }
     }
 }
 
-function generateCircleSVG() {
-    return /* html */ `
-        <svg 
-            width="70" 
-            height="70" 
-            viewBox="0 0 70 70" 
-            xmlns="http://www.w3.org/2000/svg">
+function drawWinningLine() {
+    const combination = checkWinner();
+    if (combination) {
+        const cells = combination.map(index => document.getElementById(`cell-${index}`));
+        const [start, , end] = cells;
+        const startRect = start.getBoundingClientRect();
+        const endRect = end.getBoundingClientRect();
 
-            <circle cx="35" cy="35" r="30" fill="none" stroke="#00B0EF" stroke-width="5">
-                <animate 
-                    attributeName="stroke-dasharray" 
-                    from="0, 188.4" 
-                    to="188.4, 188.4" 
-                    dur="500ms" 
-                    fill="freeze" />
-            </circle>
-        </svg>
-    `;
+        const line = document.createElement('div');
+        line.style.position = 'absolute';
+        line.style.backgroundColor = 'white';
+        line.style.height = '5px';
+        line.style.width = `${Math.hypot(endRect.left - startRect.left, endRect.top - startRect.top)}px`;
+        line.style.transformOrigin = 'left';
+        line.style.transform = `rotate(${Math.atan2(endRect.top - startRect.top, endRect.left - startRect.left) * 180 / Math.PI}deg)`;
+        line.style.left = `${startRect.left + startRect.width / 2}px`;
+        line.style.top = `${startRect.top + startRect.height / 2}px`;
+        document.body.appendChild(line);
+
+        winningLine = line;
+    }
 }
-
-function generateCrossSVG() {
-    return /* html */ `
-        <svg width="70" height="70" viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg">
-            <line x1="15" y1="15" x2="55" y2="55" stroke="#FFC000" stroke-width="5">
-                <animate 
-                    attributeName="stroke-dasharray" 
-                    from="0, 56.57" 
-                    to="56.57, 56.57" 
-                    dur="500ms" 
-                    fill="freeze" 
-                    begin="0s"/>
-            </line>
-            <line x1="15" y1="55" x2="55" y2="15" stroke="#FFC000" stroke-width="5">
-                <animate 
-                    attributeName="stroke-dasharray" 
-                    from="0, 56.57" 
-                    to="56.57, 56.57" 
-                    dur="500ms" 
-                    fill="freeze" 
-                    begin="0s"/>
-            </line>
-        </svg>
-    `;
-}
-
-
-
-
 
